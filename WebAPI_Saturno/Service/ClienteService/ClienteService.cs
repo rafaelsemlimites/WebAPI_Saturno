@@ -112,6 +112,54 @@ namespace WebAPI_Saturno.Service.ClienteService
             return serviceResponse;
         }
 
+        public async Task<ServiceResponse<ClienteModel>> GetClienteById(int id)
+        {
+            ServiceResponse<ClienteModel> serviceResponse = new ServiceResponse<ClienteModel>();
+
+            try
+            {
+                ClienteModel cliente = _context.Clientes
+                                        .Include(c => c.Telefones)
+                                        .FirstOrDefault(c => c.Id == id);
+
+                if (cliente == null)
+                {
+                    serviceResponse.Dados = null;
+                    serviceResponse.Mensagem = "Cliente não encontrado!";
+                    serviceResponse.Sucesso = false;
+                }
+
+                serviceResponse.Dados = cliente;
+            }
+            catch (DbException ex)
+            {
+                // Logar a exceção ou tratar conforme necessário
+                serviceResponse.Mensagem = "Erro ao acessar o banco de dados.";
+                serviceResponse.Sucesso = false;
+
+                // Imprimir detalhes da exceção interna
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine("### Inner Exception Message: " + ex.InnerException.Message);
+                    Console.WriteLine("@@@ Inner Exception StackTrace: " + ex.InnerException.StackTrace);
+                }
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Mensagem = ex.Message;
+                serviceResponse.Sucesso = false;
+
+                // Imprimir detalhes da exceção interna
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine("### Inner Exception Message: " + ex.InnerException.Message);
+                    Console.WriteLine("@@@ Inner Exception StackTrace: " + ex.InnerException.StackTrace);
+                }
+            }
+
+            return serviceResponse;
+        }
+
         public async Task<ServiceResponse<List<ClienteModel>>> CreateCliente(ClienteModel novoCliente)
         {
             ServiceResponse<List<ClienteModel>> serviceResponse = new ServiceResponse<List<ClienteModel>>();

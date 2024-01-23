@@ -31,6 +31,23 @@ namespace WebAPI_Saturno.Controllers
         }
 
         /// <summary>
+        /// Obtém um cliente por Id.
+        /// </summary>
+        /// <param name="id">Id do cliente.</param>
+        /// <returns>Uma resposta contendo o cliente correspondente ao ID.</returns>
+        /// /// <response code="200">Sucesso</response>
+        /// /// <response code="404">Não Encontrado</response>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ServiceResponse<ClienteModel>), 200)]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
+        public async Task<ActionResult<ServiceResponse<ClienteModel>>> GetClienteById(int id)
+        {
+            return Ok(await _clienteInterface.GetClienteById(id));
+        }
+
+
+        /// <summary>
         /// Obtém um cliente por número de telefone.
         /// </summary>
         /// <param name="ddd">DDD do telefone.</param>
