@@ -251,15 +251,18 @@ namespace WebAPI_Saturno.Service.ClienteService
                 cliente.Ativo = editadoCliente.Ativo;
                 cliente.DataDeAlteracao = DateTime.Now.ToLocalTime();
 
-                // Remover telefones existentes
-                cliente.Telefones.Clear();
+                // Excluir telefones existentes
+                foreach (var telefoneExistente in cliente.Telefones.ToList())
+                {
+                    _context.Telefones.Remove(telefoneExistente);
+                }
 
                 // Adicionar novos telefones
                 foreach (var telefone in editadoCliente.Telefones)
                 {
                     cliente.Telefones.Add(telefone);
                 }
-                
+
 
                 // Salvar as alterações
                 _context.Clientes.Update(cliente);
