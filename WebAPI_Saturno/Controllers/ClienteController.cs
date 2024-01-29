@@ -11,7 +11,7 @@ namespace WebAPI_Saturno.Controllers
     {
         private readonly IClienteInterface _clienteInterface;
 
-        public ClienteController(IClienteInterface clienteInterface) 
+        public ClienteController(IClienteInterface clienteInterface)
         {
             _clienteInterface = clienteInterface;
         }
@@ -22,12 +22,13 @@ namespace WebAPI_Saturno.Controllers
         /// </summary>
         /// <returns>Uma resposta contendo a lista de clientes.</returns>
         /// <response code="200">Sucesso</response>
+        /// ///  <response code="404">Não Encontrado</response>
         [HttpGet]
         [ProducesResponseType(typeof(ServiceResponse<List<ClienteModel>>), 200)]
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<List<ClienteModel>>>> GetClientes()
         {
-            return Ok(await _clienteInterface.GetClientes());    
+            return Ok(await _clienteInterface.GetClientes());
         }
 
         /// <summary>
@@ -43,7 +44,16 @@ namespace WebAPI_Saturno.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<ClienteModel>>> GetClienteById(int id)
         {
-            return Ok(await _clienteInterface.GetClienteById(id));
+            var serviceResponse = await _clienteInterface.GetClienteById(id);
+
+            if (serviceResponse.Sucesso)
+            {
+                return Ok(serviceResponse);
+            }
+            else
+            {
+                return NotFound(serviceResponse); // Retorna 404 se não encontrar o cliente
+            }
         }
 
 
@@ -61,7 +71,16 @@ namespace WebAPI_Saturno.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<ClienteModel>>> GetClienteByTelefone(string ddd, string numero)
         {
-            return Ok(await _clienteInterface.GetClienteByTelefone(ddd, numero));
+            var serviceResponse = await _clienteInterface.GetClienteByTelefone(ddd, numero);
+
+            if (serviceResponse.Sucesso)
+            {
+                return Ok(serviceResponse);
+            }
+            else
+            {
+                return NotFound(serviceResponse); // Retorna 404 se não encontrar o cliente
+            }
         }
 
         /// <summary>
@@ -77,10 +96,24 @@ namespace WebAPI_Saturno.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ServiceResponse<List<ClienteModel>>), 201)]
         [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<List<ClienteModel>>>> CreateCliente(ClienteModel novoCliente)
         {
-            return Ok(await _clienteInterface.CreateCliente(novoCliente));
+            var serviceResponse = await _clienteInterface.CreateCliente(novoCliente);
+
+            if (serviceResponse.Sucesso)
+            {
+                return CreatedAtAction(nameof(GetClienteById), new { id = novoCliente.Id }, serviceResponse);
+            }
+            else if (serviceResponse.Mensagem == "Cliente não encontrado!")
+            {
+                return NotFound(serviceResponse); // Retorna 404 Not Found se o recurso não foi encontrado
+            }
+            else
+            {
+                return BadRequest(serviceResponse); // Retorna 400 se a solicitação for inválida
+            }
         }
 
         /// <summary>
@@ -88,7 +121,7 @@ namespace WebAPI_Saturno.Controllers
         /// </summary>
         /// <param name="id">O ID do cliente a ser inativado.</param>
         /// <returns>Uma resposta contendo o cliente inativado.</returns>
-        /// <response code="204">Inativado(atualizado) com Sucesso</response>
+        /// <response code="204">Atualizado com Sucesso</response>
         /// <response code="404">Não Encontrado</response>
         [HttpPut("InativarCliente/{id}")]
         [ProducesResponseType(typeof(ServiceResponse<ClienteModel>), 204)]
@@ -96,7 +129,23 @@ namespace WebAPI_Saturno.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<ClienteModel>>> InativaCliente(int id)
         {
-            return Ok(await _clienteInterface.InativaCliente(id));
+            var serviceResponse = await _clienteInterface.InativaCliente(id);
+
+            if (serviceResponse.Sucesso)
+            {
+                if (serviceResponse.Dados != null)
+                {
+                    return Ok(serviceResponse); // Retorna 200 OK se a operação foi bem-sucedida
+                }
+                else
+                {
+                    return NoContent(); // Retorna 204 No Content se o recurso foi atualizado, mas não há dados para retornar
+                }
+            }
+            else
+            {
+                return NotFound(serviceResponse); // Retorna 404 Not Found se o recurso não foi encontrado
+            }
         }
 
 
@@ -112,8 +161,24 @@ namespace WebAPI_Saturno.Controllers
         [ProducesResponseType(404)]
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<ClienteModel>>> UpdateCliente(ClienteModel editadoCliente)
-        {           
-            return Ok(await _clienteInterface.UpdateCliente(editadoCliente));
+        {
+            var serviceResponse = await _clienteInterface.UpdateCliente(editadoCliente);
+
+            if (serviceResponse.Sucesso)
+            {
+                if (serviceResponse.Dados != null)
+                {
+                    return Ok(serviceResponse); // Retorna 200 OK se a operação foi bem-sucedida
+                }
+                else
+                {
+                    return NoContent(); // Retorna 204 No Content se o recurso foi atualizado, mas não há dados para retornar
+                }
+            }
+            else
+            {
+                return NotFound(serviceResponse); // Retorna 404 Not Found se o recurso não foi encontrado
+            }
         }
 
 
@@ -130,7 +195,23 @@ namespace WebAPI_Saturno.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<ServiceResponse<List<ClienteModel>>>> DeleteCliente(string email)
         {
-            return Ok(await _clienteInterface.DeleteCliente(email));
+            var serviceResponse = await _clienteInterface.DeleteCliente(email);
+
+            if (serviceResponse.Sucesso)
+            {
+                if (serviceResponse.Dados != null && serviceResponse.Dados.Any())
+                {
+                    return Ok(serviceResponse); // Retorna 200 OK se a operação foi bem-sucedida e há dados para retornar
+                }
+                else
+                {
+                    return NoContent(); // Retorna 204 No Content se a operação foi bem-sucedida, mas não há dados para retornar
+                }
+            }
+            else
+            {
+                return NotFound(serviceResponse); // Retorna 404 Not Found se o recurso não foi encontrado
+            }
         }
 
 
